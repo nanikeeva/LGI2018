@@ -1,0 +1,74 @@
+clear all
+clc
+
+[Ix,Iy,Iz]=prodop(1/2,3);
+
+w= 10;
+%H = w*Ix(:,:,1);
+v(1)=21784-21784+1.5915; %c1
+v(3)=20528-21784+1.5915; %c2
+v(2)=4546-4546; %h
+
+J=zeros(3);
+J(3,1)=103.03;
+J(2,1)=201.45;
+J(2,3)= 8.52;
+H = generate_free_evolH(3,1/2,v,J,0);
+
+%H = 2*(2989.17*pi*Z1 + 25459.09*pi*Z2 + 21592.45*pi*Z3 ...
+ %+ 29341.79*pi*Z4 + 41.62*pi*Z1Z2 + 1.46*pi*Z1Z3 + 7.02*pi*Z1Z4 ...
+  %   + 69.66*pi*Z2Z3 + 1.18*pi*Z2Z4 + 72.16*pi*Z3Z4)
+
+
+
+% First qubit state
+rho1 = eye(2)/2;
+% Second qubit state
+rho2 = [1 0; 0 0];
+%Third qubit state
+rho3 = Iz(:,:,3);
+
+rho = kron(kron(rho1,rho2),eye(2))+rho3
+
+t=0:.01:.5;
+t = .3
+for jj=1:length(t) 
+    t1=0; t2=t(jj); t3=2*t(jj);
+
+    P12(:,:,jj) = real(prob_out12(H,t1,t2,rho));
+    P23(:,:,jj) = real(prob_out23(H,t2,t3,rho));
+    P13(:,:,jj) = real(prob_out13(H,t1,t3,rho));
+    
+    C12(jj) = P12(1,1,jj)-P12(2,1,jj)-P12(3,1,jj)+P12(4,1,jj);
+    C23(jj) = P23(1,1,jj)-P23(2,1,jj)-P23(3,1,jj)+P23(4,1,jj);
+    C13(jj) = P13(1,1,jj)-P13(2,1,jj)-P13(3,1,jj)+P13(4,1,jj);
+    
+    K3(jj) = C12(jj) + C23(jj) - C13(jj);
+    K3th(jj)= 2*cos(w*t(jj))-cos(2*w*t(jj));
+    
+end
+
+plot(t,K3th,'r')
+hold on
+plot(t,K3,'o')
+
+return
+for jj=1:length(t) 
+    t1=0; t2=t(jj); t3=2*t(jj);
+
+    aP12(:,:,jj) = real(aprob_out(H,t1,t2,rho));
+    aP23(:,:,jj) = real(aprob_out(H,t2,t3,rho));
+    aP13(:,:,jj) = real(aprob_out(H,t1,t3,rho));
+    
+    aC12(jj) = aP12(2,1,jj)-aP12(4,1,jj)-aP12(1,1,jj)+aP12(3,1,jj);
+    aC23(jj) = aP23(2,1,jj)-aP23(4,1,jj)-aP23(1,1,jj)+aP23(3,1,jj);
+    aC13(jj) = aP13(2,1,jj)-aP13(4,1,jj)-aP13(1,1,jj)+aP13(3,1,jj);    
+    
+    aK3(jj) = aC12(jj) + aC23(jj) - aC13(jj); 
+end
+
+% plot(t,aK3th,'r')
+% hold on
+plot(t,aK3,'ob')
+
+
